@@ -83,7 +83,6 @@ function unbindAllFBO() {
 	gl.viewport(0, 0, gl.drawingBufferWidth, gl.drawingBufferHeight);
 }
 
-const floatSize = 4;
 class VertexArray {
 	constructor(buffer, layout, hint) {
 		//VERTEX ARRAY

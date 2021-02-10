@@ -10,3 +10,5 @@ function initWebGL(canvas) {
 
 const canvas = document.getElementById("context");
 const gl = initWebGL(canvas);
+canvas.width = 512;
+canvas.height = 512;
