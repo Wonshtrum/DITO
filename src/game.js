@@ -3,10 +3,11 @@
 
 let mainFBO = new FBO(["main", "obstacle"], 512, 512, gl.RGBA8, gl.RGBA, gl.UNSIGNED_BYTE);
 let lightFBO = new FBO(["main"], 512, 512, gl.RGBA8, gl.RGBA, gl.UNSIGNED_BYTE);
+let finalFBO = new FBO(["main"], 512, 512, gl.RGBA8, gl.RGBA, gl.UNSIGNED_BYTE);
 
 
 let k = 0;
-let activeTarget = mainFBO.textures.main;
+let activeTarget = finalFBO.texture;
 function update() {
     ShaderLib.clearMRT.bind();
     gl.uniform4f(ShaderLib.clearMRT.uniforms.u_colorF, 0, 0.5, 0.9, 0.2);
@@ -23,8 +24,13 @@ function update() {
 
     ShaderLib.light.bind();
     gl.uniform1i(ShaderLib.light.uniforms.u_obstacles, mainFBO.textures.obstacle.attach(0));
+    gl.uniform2f(ShaderLib.light.uniforms.u_light, Cursor.coordX/canvas.offsetWidth, 1-Cursor.coordY/canvas.offsetHeight);
     blit(lightFBO);
     
+    ShaderLib.final.bind();
+    gl.uniform1i(ShaderLib.final.uniforms.u_main, mainFBO.texture.attach(0));
+    gl.uniform1i(ShaderLib.final.uniforms.u_light, lightFBO.texture.attach(1));
+    blit(finalFBO);
     transferTarget(activeTarget);
     requestAnimationFrame(update);
 }
