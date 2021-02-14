@@ -49,7 +49,46 @@ const clear_fsh = compileShader(gl.FRAGMENT_SHADER, `
 	}
 `);
 
+
+const clearMRT_fsh = compileShader(gl.FRAGMENT_SHADER, `
+	layout(location = 0) out vec4 outColor;
+	layout(location = 1) out vec4 obsColor;
+
+	uniform vec4 u_colorF;
+	uniform vec4 u_colorB;
+
+	void main() {
+		outColor = u_colorF;
+		obsColor = u_colorB;
+	}
+`);
+const obstacle_fsh = compileShader(gl.FRAGMENT_SHADER, `
+	layout(location = 0) out vec4 outColor;
+	layout(location = 1) out vec4 obsColor;
+
+	in vec4 v_color;
+	uniform vec4 u_color;
+
+	void main() {
+		outColor = v_color;
+		obsColor = u_color;
+	}
+`);
+const light_fsh = compileShader(gl.FRAGMENT_SHADER, `
+	layout(location = 0) out vec4 outColor;
+
+	in vec2 v_position;
+	uniform sampler2D u_obstacles;
+
+	void main() {
+		outColor = texture(u_obstacles, v_position)*vec4(0,0,0.5,1)+vec4(0.2,0.5,0.1,1);
+	}
+`);
+
 const ShaderLib = {};
 
-ShaderLib.debug = new Shader(general_vsh, debug_fsh);
-ShaderLib.clear = new Shader(basic_vsh, clear_fsh);
+ShaderLib.debug    = new Shader(general_vsh, debug_fsh);
+ShaderLib.clear    = new Shader(basic_vsh, clear_fsh);
+ShaderLib.clearMRT = new Shader(basic_vsh, clearMRT_fsh);
+ShaderLib.obstacle = new Shader(general_vsh, obstacle_fsh);
+ShaderLib.light    = new Shader(basic_vsh, light_fsh);
