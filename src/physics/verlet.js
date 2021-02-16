@@ -6,11 +6,12 @@ class Vec2 {
 }
 
 class VerletPoint {
-    constructor(x, y) {
+    constructor(x, y, coef = 1) {
         this.posX = x;
         this.posY = y;
         this.posOldX = x;
         this.posOldY = y;
+        this.coef = coef;
     }
 
     integrate(forceX = 0, forceY = 0) {
@@ -18,14 +19,14 @@ class VerletPoint {
         let vy = this.posY - this.posOldY;
         this.posOldX = this.posX;
         this.posOldY = this.posY;
-        this.posX += vx + forceX;
-        this.posY += vy + forceY;
+        this.posX += vx*this.coef + forceX;
+        this.posY += vy*this.coef + forceY;
     }
 }
 
 class Rope {
-    constructor(anchorX, anchorY, n, space, iter = 10) {
-        this.segments = Array.build(n, i => new VerletPoint(anchorX, anchorY - i*space));
+    constructor(anchorX, anchorY, n, space, coef = 1, iter = 10) {
+        this.segments = Array.build(n, i => new VerletPoint(anchorX, anchorY - i*space, coef));
         this.n = n;
         this.space = space;
         this.iter = iter;

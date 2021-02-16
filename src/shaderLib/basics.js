@@ -81,7 +81,9 @@ const light_fsh = compileShader(gl.FRAGMENT_SHADER, `
 
 	in vec2 v_position;
 	uniform sampler2D u_obstacles;
+	uniform sampler2D u_accLights;
 	uniform vec2 u_light;
+	uniform vec3 u_color;
 
 	bool line(vec2 p, vec2 t, float maxD) {
 		vec2 v = normalize(t - p);
@@ -96,17 +98,29 @@ const light_fsh = compileShader(gl.FRAGMENT_SHADER, `
 		}
 		return true;
 	}
+	float persist(vec2 p, vec2 t, float maxD) {
+		vec2 v = normalize(t - p);
+		float D = distance(p, t);
+		if (maxD <= D) return 0.0;
+		float d = 0.0;
+		float step = 0.005;
+		float res = 1.0;
+		while (d < D-step) {
+			p += v*step;
+			d += step;
+			res *= texture(u_obstacles, p).r;
+		}
+		return res;
+	}
 
 	void main() {
 		const float maxD = 0.3;
 		const float maxI = 1.0/maxD;
 		const float border = 0.0001*maxI*maxI+0.02*maxI;
-		float intensity = 0.0;
-		if (line(u_light, v_position, maxD)) {
-			float d = 1.0/distance(u_light, v_position);
-			intensity = 0.0001*d*d+0.02*d -border;
-		}
-		outColor = vec4(intensity, intensity, intensity, 1);
+		float p = persist(u_light, v_position, maxD);
+		float d = 1.0/distance(u_light, v_position);
+		float intensity = 0.0001*d*d+0.02*d -border;
+		outColor = texture(u_accLights, v_position)+vec4(u_color*intensity*p, 1);
 	}
 `);
 
@@ -120,8 +134,8 @@ const final_fsh = compileShader(gl.FRAGMENT_SHADER, `
 
 	void main() {
 		vec4 base = texture(u_main, v_position);	
-		float light = texture(u_light, v_position).r;
-		outColor = vec4(base.rgb*(1.0+base.a)*(light+0.2)+light*light*0.5, 1);
+		vec3 light = texture(u_light, v_position).rgb;
+		outColor = vec4(base.rgb*(light+0.2)+light*light*0.5, 1);
 	}
 `);
 
