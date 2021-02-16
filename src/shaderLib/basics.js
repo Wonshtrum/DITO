@@ -88,8 +88,8 @@ const light_fsh = compileShader(gl.FRAGMENT_SHADER, `
 		float D = distance(p, t);
 		if (maxD <= D) return false;
 		float d = 0.0;
-		float step = 0.001;
-		while (d < D) {
+		float step = 0.003;
+		while (d < D-step) {
 			p += v*step;
 			d += step;
 			if (texture(u_obstacles, p).r == 0.0) return false;
@@ -98,10 +98,13 @@ const light_fsh = compileShader(gl.FRAGMENT_SHADER, `
 	}
 
 	void main() {
-		float intensity = 0.2;
-		if (line(u_light, v_position, 0.2)) {
-			float d = 0.1/distance(u_light, v_position);
-			intensity = 0.01*d*d + 0.2*d + 0.1;
+		const float maxD = 0.3;
+		const float maxI = 1.0/maxD;
+		const float border = 0.0001*maxI*maxI+0.02*maxI;
+		float intensity = 0.0;
+		if (line(u_light, v_position, maxD)) {
+			float d = 1.0/distance(u_light, v_position);
+			intensity = 0.0001*d*d+0.02*d -border;
 		}
 		outColor = vec4(intensity, intensity, intensity, 1);
 	}
@@ -117,7 +120,8 @@ const final_fsh = compileShader(gl.FRAGMENT_SHADER, `
 
 	void main() {
 		vec4 base = texture(u_main, v_position);	
-		outColor = vec4(base.rgb*(1.0+base.a)*texture(u_light, v_position).r, 1);
+		float light = texture(u_light, v_position).r;
+		outColor = vec4(base.rgb*(1.0+base.a)*(light+0.2)+light*light*0.5, 1);
 	}
 `);
 

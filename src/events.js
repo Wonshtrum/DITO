@@ -6,6 +6,8 @@ const Cursor = {
 	prevCoordY: null,
 	coordX: null,
 	coordY: null,
+	x: null,
+	y: null,
 	down: false,
 	moved: false
 };
@@ -24,4 +26,6 @@ canvas.addEventListener('mousemove', e => {
 	Cursor.prevCoordY = Cursor.coordY;
 	Cursor.coordX = e.x;
 	Cursor.coordY = e.y;
+	Cursor.x = e.x/canvas.offsetWidth;
+	Cursor.y = 1-e.y/canvas.offsetHeight;
 });
