@@ -2,17 +2,17 @@
 
 
 class Texture {
-	constructor(width, height, internalFormat, format, type, id = 0) {
+	constructor(width, height, parameters, id = 0) {
 		this.width = width;
 		this.height = height;
 		this.data = gl.createTexture();
 		gl.activeTexture(gl.TEXTURE0 + id);
 		gl.bindTexture(gl.TEXTURE_2D, this.data);
-		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
-		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, parameters.filter);
+		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, parameters.filter);
 		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
 		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-		gl.texImage2D(gl.TEXTURE_2D, 0, internalFormat, width, height, 0, format, type, null);
+		gl.texImage2D(gl.TEXTURE_2D, 0, parameters.internalFormat, width, height, 0, parameters.format, parameters.type, null);
 	}
 
 	attach(id) {
@@ -23,8 +23,8 @@ class Texture {
 }
 
 class FBO {
-	constructor(textureNames, width, height, internalFormat, format, type) {
-		this.n = textureNames.length;
+	constructor(width, height, attachments) {
+		this.n = attachments.length;
 		this.textures = {};
 		this.attachments = [];
 
@@ -39,9 +39,9 @@ class FBO {
 
 		for (let i = 0 ; i < this.n ; i++) {
 			this.attachments.push(gl.COLOR_ATTACHMENT0 + i);
-			let texture = new Texture(width, height, internalFormat, format, type, i);
+			let texture = new Texture(width, height, attachments[i], i);
 			gl.framebufferTexture2D(gl.FRAMEBUFFER, this.attachments[i], gl.TEXTURE_2D, texture.data, 0);
-			this.textures[textureNames[i]] = texture;
+			this.textures[attachments[i].name] = texture;
 			if (i === 0) {
 				this.texture = texture;
 			}
@@ -61,20 +61,33 @@ class FBO {
 };
 
 class RWFBO {
-	constructor(textureNames, width, height, internalFormat, format, type) {
+	constructor(width, height, attachments) {
 		this.width = width;
 		this.height = height;
 
 		this.texelSizeX = 1.0 / width;
 		this.texelSizeY = 1.0 / height;
 
-		this.read = new FBO(textureNames, width, height, internalFormat, format, type);
-		this.write = new FBO(textureNames, width, height, internalFormat, format, type);
+		this.read = new FBO(width, height, attachments);
+		this.write = new FBO(width, height, attachments);
 	}
 
 	swap() {
 		[this.read, this.write] = [this.write, this.read];
 	}
+};
+
+class AttachmentParameters {
+	constructor(name, filter, internalFormat, format, type) {
+		this.name = name;
+		this.filter = filter;
+		this.internalFormat = internalFormat;
+		this.format = format;
+		this.type = type;
+	}
+};
+function AP(name = "main", filter = gl.NEAREST, internalFormat = gl.RGBA8, format = gl.RGBA, type = gl.UNSIGNED_BYTE) {
+	return new AttachmentParameters(name, filter, internalFormat, format, type);
 }
 
 function unbindAllFBO() {

@@ -45,6 +45,12 @@ class Rope {
         this.segments[0].posX = anchorX;
         this.segments[0].posY = anchorY;
         for (let i = 0 ; i < this.n-1 ; i++) {
+            if (this.segments[i+1].posY<=0.5 && (this.segments[i+1].posX<0.3 || this.segments[i+1].posX > 0.7)) {
+                this.segments[i+1].posY = 0.5;
+            }
+            if (this.segments[i+1].posY<0.1) {
+                this.segments[i+1].posY = 0.1;
+            }
             let dx = this.segments[i].posX - this.segments[i+1].posX;
             let dy = this.segments[i].posY - this.segments[i+1].posY;
             let d = Math.sqrt(dx*dx + dy*dy);

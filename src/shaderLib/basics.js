@@ -117,6 +117,7 @@ const light_fsh = compileShader(gl.FRAGMENT_SHADER, `
 		const float maxD = 0.3;
 		const float maxI = 1.0/maxD;
 		const float border = 0.0001*maxI*maxI+0.02*maxI;
+		//float p = persist(v_position, u_light, maxD);
 		float p = persist(u_light, v_position, maxD);
 		float d = 1.0/distance(u_light, v_position);
 		float intensity = 0.0001*d*d+0.02*d -border;

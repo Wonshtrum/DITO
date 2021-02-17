@@ -1,10 +1,9 @@
 'use strict';
 
 
-let mainFBO = new FBO(["main", "obstacle"], 512, 512, gl.RGBA8, gl.RGBA, gl.UNSIGNED_BYTE);
-let lightFBO = new RWFBO(["main"], 512, 512, gl.RGBA8, gl.RGBA, gl.UNSIGNED_BYTE);
-let finalFBO = new FBO(["main"], 512, 512, gl.RGBA8, gl.RGBA, gl.UNSIGNED_BYTE);
-
+let mainFBO = new FBO(512, 512, [AP("main"), AP("obstacle", gl.NEAREST, gl.R8, gl.RED)]);
+let lightFBO = new RWFBO(256, 256, [AP("main", gl.LINEAR)]);
+let finalFBO = new FBO(512, 512, [AP("main")]);
 
 let k = 0;
 let activeTarget = finalFBO.texture;
@@ -18,7 +17,7 @@ let lights = Array.build(10, i => {
 function update() {
     ShaderLib.clearMRT.bind();
     gl.uniform4f(ShaderLib.clearMRT.uniforms.u_colorF, 1, 1, 1, 1);
-    gl.uniform4f(ShaderLib.clearMRT.uniforms.u_colorB, 1, 1, 1, 1);
+    gl.uniform4f(ShaderLib.clearMRT.uniforms.u_colorB, 1, 0, 0, 1);
     blit(mainFBO);
     
     ShaderLib.obstacle.bind();
@@ -28,7 +27,7 @@ function update() {
         drawQuad(Math.abs((i*(1+i%5)-k+500)%500)/500, Math.abs((i*(1+i%3)+k)%500)/500, 0.02, 0.02, 0,(i%10)/10,0,1);
     }
     batch.flush();
-    rope.simulate(0.00, Cursor.x, Cursor.y);
+    rope.simulate(0.002, Cursor.x, Cursor.y);
     gl.uniform4f(ShaderLib.obstacle.uniforms.u_color, 0.5, 0, 0, 1);
     rope.draw();
     batch.flush();
