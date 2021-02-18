@@ -34,6 +34,8 @@ class FBO {
 		this.texelSizeX = 1.0 / width;
 		this.texelSizeY = 1.0 / height;
 
+		this.defaultViewPort();
+
 		this.fbo = gl.createFramebuffer();
 		gl.bindFramebuffer(gl.FRAMEBUFFER, this.fbo);
 
@@ -53,8 +55,28 @@ class FBO {
 		this.bind();
 	}
 
+	defaultViewPort() {
+		this.vpx = 0;
+		this.vpy = 0;
+		this.vpw = this.width;
+		this.vph = this.height;
+	}
+
+	setViewPort(x, y, width, height) {
+		this.vpx = x;
+		this.vpy = y;
+		this.vpw = width;
+		this.vph = height;
+	}
+	centerViewPort(x, y, halfWidth, halfHeight) {
+		this.vpx = x-halfWidth;
+		this.vpy = y-halfHeight;
+		this.vpw = 2*halfWidth;
+		this.vph = 2*halfHeight;
+	}
+
 	bind() {
-		gl.viewport(0, 0, this.width, this.height);
+		gl.viewport(this.vpx, this.vpy, this.vpw, this.vph);
 		gl.bindFramebuffer(gl.FRAMEBUFFER, this.fbo);
 		gl.drawBuffers(this.attachments);
 	}

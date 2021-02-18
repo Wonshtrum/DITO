@@ -85,19 +85,6 @@ const light_fsh = compileShader(gl.FRAGMENT_SHADER, `
 	uniform vec2 u_light;
 	uniform vec3 u_color;
 
-	bool line(vec2 p, vec2 t, float maxD) {
-		vec2 v = normalize(t - p);
-		float D = distance(p, t);
-		if (maxD <= D) return false;
-		float d = 0.0;
-		float step = 0.003;
-		while (d < D-step) {
-			p += v*step;
-			d += step;
-			if (texture(u_obstacles, p).r == 0.0) return false;
-		}
-		return true;
-	}
 	float persist(vec2 p, vec2 t, float maxD) {
 		vec2 v = normalize(t - p);
 		float D = distance(p, t);
