@@ -83,7 +83,7 @@ const light_fsh = compileShader(gl.FRAGMENT_SHADER, `
 	uniform sampler2D u_obstacles;
 	uniform sampler2D u_accLights;
 	uniform vec2 u_light;
-	uniform vec3 u_color;
+	uniform vec4 u_color;
 
 	float persist(vec2 p, vec2 t, float maxD) {
 		vec2 v = normalize(t - p);
@@ -101,17 +101,48 @@ const light_fsh = compileShader(gl.FRAGMENT_SHADER, `
 	}
 
 	void main() {
-		const float maxD = 0.3;
-		const float maxI = 1.0/maxD;
+		float maxD = u_color.a;
+		const float maxI = 2.0;
 		const float border = 0.0001*maxI*maxI+0.02*maxI;
-		//float p = persist(v_position, u_light, maxD);
 		float p = persist(u_light, v_position, maxD);
-		float d = 1.0/distance(u_light, v_position);
+		float d = 2.0*maxD/distance(u_light, v_position);
 		float intensity = 0.0001*d*d+0.02*d -border;
-		outColor = texture(u_accLights, v_position)+vec4(u_color*intensity*p, 1);
+		outColor = texture(u_accLights, v_position)+vec4(u_color.rgb*intensity*p, 1);
 	}
 `);
+const light_turbo_fsh = compileShader(gl.FRAGMENT_SHADER, `
+	layout(location = 0) out vec4 outColor;
 
+	in vec2 v_position;
+	in vec2 v_texcoord;
+	in vec4 v_color;
+	uniform sampler2D u_obstacles;
+
+	float persist(vec2 p, vec2 t, float maxD) {
+		vec2 v = normalize(t - p);
+		float D = distance(p, t);
+		if (maxD <= D) return 0.0;
+		float d = 0.0;
+		float step = 0.005;
+		float res = 1.0;
+		while (d < D-step) {
+			p += v*step;
+			d += step;
+			res *= texture(u_obstacles, p).r;
+		}
+		return res;
+	}
+
+	void main() {
+		float maxD = v_color.a;
+		const float maxI = 2.0;
+		const float border = 0.0001*maxI*maxI+0.02*maxI;
+		float p = persist(v_position+2.0*maxD*(vec2(0.5)-v_texcoord), v_position, maxD);
+		float d = 1.0/distance(v_texcoord, vec2(0.5));
+		float intensity = 0.0001*d*d+0.02*d -border;
+		outColor = vec4(v_color.rgb*intensity*p, 1);
+	}
+`);
 
 const final_fsh = compileShader(gl.FRAGMENT_SHADER, `
 	layout(location = 0) out vec4 outColor;
@@ -134,4 +165,5 @@ ShaderLib.clear    = new Shader(basic_vsh, clear_fsh);
 ShaderLib.clearMRT = new Shader(basic_vsh, clearMRT_fsh);
 ShaderLib.obstacle = new Shader(general_vsh, obstacle_fsh);
 ShaderLib.light    = new Shader(basic_vsh, light_fsh);
+ShaderLib.light2   = new Shader(general_vsh, light_turbo_fsh);
 ShaderLib.final    = new Shader(basic_vsh, final_fsh);
