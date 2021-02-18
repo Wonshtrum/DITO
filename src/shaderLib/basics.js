@@ -73,7 +73,7 @@ const obstacle_fsh = compileShader(gl.FRAGMENT_SHADER, `
 
 	void main() {
 		outColor = v_color;
-		obsColor = u_color;
+		obsColor = vec4(v_color.rgb*u_color.rgb, u_color.a);
 	}
 `);
 const light_fsh = compileShader(gl.FRAGMENT_SHADER, `
@@ -118,17 +118,17 @@ const light_turbo_fsh = compileShader(gl.FRAGMENT_SHADER, `
 	in vec4 v_color;
 	uniform sampler2D u_obstacles;
 
-	float persist(vec2 p, vec2 t, float maxD) {
+	vec3 persist(vec2 p, vec2 t, float maxD) {
 		vec2 v = normalize(t - p);
 		float D = distance(p, t);
-		if (maxD <= D) return 0.0;
+		if (maxD <= D) return vec3(0);
 		float d = 0.0;
 		float step = 0.005;
-		float res = 1.0;
+		vec3 res = vec3(1);
 		while (d < D-step) {
 			p += v*step;
 			d += step;
-			res *= texture(u_obstacles, p).r;
+			res *= texture(u_obstacles, p).rgb;
 		}
 		return res;
 	}
@@ -137,7 +137,7 @@ const light_turbo_fsh = compileShader(gl.FRAGMENT_SHADER, `
 		float maxD = v_color.a;
 		const float maxI = 2.0;
 		const float border = 0.0001*maxI*maxI+0.02*maxI;
-		float p = persist(v_position+2.0*maxD*(vec2(0.5)-v_texcoord), v_position, maxD);
+		vec3 p = persist(v_position, v_position+2.0*maxD*(vec2(0.5)-v_texcoord), maxD);
 		float d = 1.0/distance(v_texcoord, vec2(0.5));
 		float intensity = 0.0001*d*d+0.02*d -border;
 		outColor = vec4(v_color.rgb*intensity*p, 1);
