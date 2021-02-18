@@ -45,15 +45,21 @@ class Rope {
         this.segments[0].posX = anchorX;
         this.segments[0].posY = anchorY;
         for (let i = 0 ; i < this.n-1 ; i++) {
-            if (this.segments[i+1].posY<=0.5 && (this.segments[i+1].posX<0.3 || this.segments[i+1].posX > 0.7)) {
-                this.segments[i+1].posY = 0.5;
+            let clipY = this.segments[i+1].posY-0.5;
+            let clipX = 0.2-abs(this.segments[i+1].posX-0.5);
+            if (clipX < 0 && clipY < 0) {
+                if (clipX < clipY) {
+                    this.segments[i+1].posY = 0.5;
+                } else {
+                    this.segments[i+1].posX = this.segments[i+1].posX > 0.5 ? 0.7 : 0.3;
+                }
             }
             if (this.segments[i+1].posY<0.1) {
                 this.segments[i+1].posY = 0.1;
             }
             let dx = this.segments[i].posX - this.segments[i+1].posX;
             let dy = this.segments[i].posY - this.segments[i+1].posY;
-            let d = Math.sqrt(dx*dx + dy*dy);
+            let d = sqrt(dx*dx + dy*dy);
             let e = (d-this.space)/(2*d);
             this.segments[i].posX -= e*dx;
             this.segments[i].posY -= e*dy;

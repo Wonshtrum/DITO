@@ -2,7 +2,7 @@
 
 
 let mainFBO = new FBO(512, 512, [AP("main"), AP("obstacle")]);
-let lightFBO = new RWFBO(512, 512, [AP("main", gl.LINEAR)]);
+let lightFBO = new RWFBO(256, 256, [AP("main", gl.LINEAR)]);
 let finalFBO = new FBO(512, 512, [AP("main")]);
 
 let k = 0;
@@ -16,7 +16,11 @@ let lights = Array.build(3, i => {
     light.size = 0.2+rnd()*0.4;
     return light;
 });
+
 let LIGHT_TURBO = true;
+let BLUR_LIGHT = true;
+let MOVE_SPEED = 0.5;
+
 function update() {
     ShaderLib.clearMRT.bind();
     gl.uniform4f(ShaderLib.clearMRT.uniforms.u_colorF, 1, 1, 1, 1);
@@ -24,15 +28,15 @@ function update() {
     blit(mainFBO);
 
     ShaderLib.obstacle.bind();
-    gl.uniform4f(ShaderLib.obstacle.uniforms.u_color, 1, 1, 1, 0.2);
-    k-=0.5;
+    gl.uniform4f(ShaderLib.obstacle.uniforms.u_color, 1, 1, 1, 1);
+    k -= MOVE_SPEED;
     for (let i = 0 ; i < 500 ; i++) {
-        drawQuad(Math.abs((i*(1+i%5)-k+500)%500)/500, Math.abs((i*(1+i%3)+k)%500)/500, 0.02, 0.02, (i%5)/5,(i%11)/11,(i%13)/13,1);
+        drawQuad(abs((i*(1+i%5)-k+500)%500)/500, abs((i*(1+i%3)+k)%500)/500, 0.02, 0.02, (i%5)/5,(i%11)/11,(i%13)/13,1);
     }
     batch.flush();
 
     rope.simulate(0.002, Cursor.x, Cursor.y);
-    gl.uniform4f(ShaderLib.obstacle.uniforms.u_color, 1, 1, 1, 0.8);
+    gl.uniform4f(ShaderLib.obstacle.uniforms.u_color, 1, 1, 1, 1);
     rope.draw();
     batch.flush();
 
@@ -40,8 +44,8 @@ function update() {
         ShaderLib.clear.bind();
         gl.uniform4f(ShaderLib.clear.uniforms.u_color, 0, 0, 0, 1);
         blit(lightFBO.write);
-        ShaderLib.light2.bind();
-        gl.uniform1i(ShaderLib.light2.uniforms.u_obstacles, mainFBO.textures.obstacle.attach(0));
+        ShaderLib.lightTurbo.bind();
+        gl.uniform1i(ShaderLib.lightTurbo.uniforms.u_obstacles, mainFBO.textures.obstacle.attach(0));
         for (let i = 0 ; i < lights.length ; i++) {
             let s = lights[i].size;
             drawQuad(lights[i].x-s, lights[i].y-s, 2*s, 2*s, lights[i].r, lights[i].g, lights[i].b, s);
@@ -64,6 +68,17 @@ function update() {
             blit(lightFBO.write);
             lightFBO.swap();
         }
+    }
+
+    if (BLUR_LIGHT) {
+        ShaderLib.blurV.bind();
+        gl.uniform1i(ShaderLib.final.uniforms.u_tex, lightFBO.read.texture.attach(0));
+        blit(lightFBO.write);
+        lightFBO.swap();
+        ShaderLib.blurH.bind();
+        gl.uniform1i(ShaderLib.final.uniforms.u_tex, lightFBO.read.texture.attach(0));
+        blit(lightFBO.write);
+        lightFBO.swap();
     }
 
     ShaderLib.final.bind();

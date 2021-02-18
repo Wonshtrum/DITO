@@ -17,13 +17,16 @@ Array.prototype.remove = function(e) {
 }
 const getOrElse = (value, orElse) => value === undefined ? orElse : value;
 const rnd = Math.random;
+const abs = Math.abs;
+const floor = Math.floor;
+const sqrt = Math.sqrt;
 
 function generateColor() {
 	return HSVtoRGB(rnd(), 1, 1);
 }
 function HSVtoRGB(h, s, v) {
 	let r, g, b, i, f, p, q, t;
-	i = Math.floor(h * 6);
+	i = floor(h * 6);
 	f = h * 6 - i;
 	p = v * (1 - s);
 	q = v * (1 - f * s);
