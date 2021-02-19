@@ -122,6 +122,11 @@ const light_turbo_fsh = compileShader(gl.FRAGMENT_SHADER, `
 		vec2 v = normalize(t - p);
 		float D = distance(p, t);
 		if (maxD <= D) return vec3(0);
+		/*if (textureLod(u_obstacles, p, 3.0).rgb != vec3(1)) {
+			return vec3(0);
+		}
+		return vec3(1);*/
+
 		float d = 0.0;
 		float step = 0.005;
 		vec3 res = vec3(1);
@@ -155,8 +160,8 @@ const blurH_fsh = compileShader(gl.FRAGMENT_SHADER, `
 		const float weight[5] = float[](0.227027, 0.1945946, 0.1216216, 0.054054, 0.016216);
 		vec3 result = texture(u_tex, v_position).rgb * weight[0];
 		for(int i = 1 ; i < 5 ; i++) {
-            result += texture(u_tex, v_position + vec2(pixelWidth * float(i), 0.0)).rgb * weight[i];
-            result += texture(u_tex, v_position - vec2(pixelWidth * float(i), 0.0)).rgb * weight[i];
+            result += texture(u_tex, v_position + vec2(pixelWidth * float(i), 0)).rgb * weight[i];
+            result += texture(u_tex, v_position - vec2(pixelWidth * float(i), 0)).rgb * weight[i];
 		}
 		outColor = vec4(result, 1);
 	}

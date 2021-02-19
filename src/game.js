@@ -18,7 +18,7 @@ let lights = Array.build(3, i => {
 });
 
 let LIGHT_TURBO = true;
-let BLUR_LIGHT = true;
+let BLUR_LIGHT = 1;
 let MOVE_SPEED = 0.5;
 
 function update() {
@@ -40,6 +40,8 @@ function update() {
     gl.uniform4f(ShaderLib.obstacle.uniforms.u_color, 1, 1, 1, 1);
     rope.draw();
     batch.flush();
+    mainFBO.textures.obstacle.attach(0);
+    gl.generateMipmap(gl.TEXTURE_2D);
 
     if (LIGHT_TURBO) {
         ShaderLib.clear.bind();
@@ -71,16 +73,7 @@ function update() {
         }
     }
 
-    if (BLUR_LIGHT) {
-        ShaderLib.blurV.bind();
-        gl.uniform1i(ShaderLib.final.uniforms.u_tex, lightFBO.read.texture.attach(0));
-        blit(lightFBO.write);
-        lightFBO.swap();
-        ShaderLib.blurH.bind();
-        gl.uniform1i(ShaderLib.final.uniforms.u_tex, lightFBO.read.texture.attach(0));
-        blit(lightFBO.write);
-        lightFBO.swap();
-    }
+    blur(lightFBO, BLUR_LIGHT);
 
     ShaderLib.final.bind();
     gl.uniform1i(ShaderLib.final.uniforms.u_main, mainFBO.texture.attach(0));
