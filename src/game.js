@@ -2,7 +2,7 @@
 
 
 let mainFBO = new FBO(512, 512, [AP("main"), AP("obstacle")]);
-let lightFBO = new RWFBO(256, 256, [AP("main", gl.LINEAR)]);
+let lightFBO = new RWFBO(512, 512, [AP("main", gl.LINEAR)]);
 let finalFBO = new FBO(512, 512, [AP("main")]);
 
 let k = 0;
@@ -30,8 +30,9 @@ function update() {
     ShaderLib.obstacle.bind();
     gl.uniform4f(ShaderLib.obstacle.uniforms.u_color, 1, 1, 1, 1);
     k -= MOVE_SPEED;
-    for (let i = 0 ; i < 500 ; i++) {
-        drawQuad(abs((i*(1+i%5)-k+500)%500)/500, abs((i*(1+i%3)+k)%500)/500, 0.02, 0.02, (i%5)/5,(i%11)/11,(i%13)/13,1);
+    for (let i = 0 ; i < 500 ; i+=2) {
+        let color = HSVtoRGB((i%100)/100, 1, 1);
+        drawQuad(abs((i*(1+i%5)-k+500)%500)/500, abs((i*(1+i%3)+k)%500)/500, 0.02, 0.02, color.r, color.g, color.b, 1);
     }
     batch.flush();
 
