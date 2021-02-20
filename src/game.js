@@ -7,7 +7,7 @@ let finalFBO = new FBO(512, 512, [AP("main")]);
 
 let k = 0;
 let activeTarget = finalFBO.texture;
-let rope = new Rope(0.5, 0.5, 100, 0.01, 0.95, 500);
+let rope = new Rope(0.2, 2.5, 75, 0.02, 0.95, 100);
 let lights = Array.build(3, i => {
     let light = generateColor();
     light.x = rnd();
@@ -20,6 +20,7 @@ let lights = Array.build(3, i => {
 let LIGHT_TURBO = true;
 let BLUR_LIGHT = 1;
 let MOVE_SPEED = 0.5;
+let PHYSICS = true;
 
 function update() {
     ShaderLib.clearMRT.bind();
@@ -34,9 +35,14 @@ function update() {
         let color = HSVtoRGB((i%100)/100, 1, 1);
         drawQuad(abs((i*(1+i%5)-k+500)%500)/500, abs((i*(1+i%3)+k)%500)/500, 0.02, 0.02, color.r, color.g, color.b, 1);
     }
+    drawQuad(0,0,0.3,0.5,1,0,0,0.5);
+    drawQuad(0.71,0,0.3,0.5,1,0,0,0.5);
+    drawQuad(0,0,1,0.1,1,0,0,0.5);
     batch.flush();
 
-    rope.simulate(0.002, Cursor.x, Cursor.y);
+    if (PHYSICS) {
+        rope.simulate(0.002, Cursor.x, Cursor.y);
+    }
     gl.uniform4f(ShaderLib.obstacle.uniforms.u_color, 1, 1, 1, 1);
     rope.draw();
     batch.flush();

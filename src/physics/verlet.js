@@ -12,6 +12,7 @@ class VerletPoint {
         this.posOldX = x;
         this.posOldY = y;
         this.coef = coef;
+        this.touch = false;
     }
 
     integrate(forceX = 0, forceY = 0) {
@@ -19,14 +20,20 @@ class VerletPoint {
         let vy = this.posY - this.posOldY;
         this.posOldX = this.posX;
         this.posOldY = this.posY;
-        this.posX += vx*this.coef + forceX;
-        this.posY += vy*this.coef + forceY;
+        if (this.touch) {
+            this.posX += vx*0.1 + forceX;
+            this.posY += vy*0.1 + forceY;
+            this.touch = false;
+        } else {
+            this.posX += vx*this.coef + forceX;
+            this.posY += vy*this.coef + forceY;
+        }
     }
 }
 
 class Rope {
     constructor(anchorX, anchorY, n, space, coef = 1, iter = 10) {
-        this.segments = Array.build(n, i => new VerletPoint(anchorX, anchorY - i*space, coef));
+        this.segments = Array.build(n, i => new VerletPoint(anchorX, anchorY, coef));
         this.n = n;
         this.space = space;
         this.iter = iter;
@@ -37,25 +44,31 @@ class Rope {
             this.segments[i].integrate(0, -dt);
         }
         for (let i = 0 ; i < this.iter ; i++) {
-            this.constraint(anchorX, anchorY);
+            this.constraint(anchorX, anchorY, i%5 === 0 || i === this.iter-1);
         }
     }
 
-    constraint(anchorX, anchorY) {
+    constraint(anchorX, anchorY, collision) {
         this.segments[0].posX = anchorX;
         this.segments[0].posY = anchorY;
         for (let i = 0 ; i < this.n-1 ; i++) {
-            let clipY = this.segments[i+1].posY-0.5;
-            let clipX = 0.2-abs(this.segments[i+1].posX-0.5);
-            if (clipX < 0 && clipY < 0) {
-                if (clipX < clipY) {
-                    this.segments[i+1].posY = 0.5;
-                } else {
-                    this.segments[i+1].posX = this.segments[i+1].posX > 0.5 ? 0.7 : 0.3;
+            if (collision) {
+                let clipY = this.segments[i+1].posY-0.5;
+                let clipX = 0.2-abs(this.segments[i+1].posX-0.5);
+                let touch = false;
+                if (clipX < 0 && clipY < 0) {
+                    if (clipX < clipY) {
+                        this.segments[i+1].posY = 0.5;
+                    } else {
+                        this.segments[i+1].posX = this.segments[i+1].posX > 0.5 ? 0.7 : 0.3;
+                    }
+                    touch = true;
                 }
-            }
-            if (this.segments[i+1].posY<0.1) {
-                this.segments[i+1].posY = 0.1;
+                if (this.segments[i+1].posY<0.1) {
+                    this.segments[i+1].posY = 0.1;
+                    touch = true;
+                }
+                this.segments[i+1].touch |= touch;
             }
             let dx = this.segments[i].posX - this.segments[i+1].posX;
             let dy = this.segments[i].posY - this.segments[i+1].posY;
