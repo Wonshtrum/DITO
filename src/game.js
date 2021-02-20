@@ -1,8 +1,6 @@
 'use strict';
 
 
-let tex_GAH = loadTexture("gah.png");
-
 let mainFBO = new FBO(512, 512, [AP("main"), AP("obstacle", gl.LINEAR, gl.LINEAR_MIPMAP_NEAREST)]);
 let lightFBO = new RWFBO(512, 512, [AP("main", gl.LINEAR)]);
 let finalFBO = new FBO(512, 512, [AP("main")]);
@@ -23,6 +21,14 @@ let LIGHT_TURBO = true;
 let BLUR_LIGHT = 1;
 let MOVE_SPEED = 0.5;
 let PHYSICS = true;
+let SHOW_COLLIDERS = true;
+
+//let polygon = new Polygon([0.5,0.5, 0.7,0.8, 0.8,0.2, 0.2,0.3, 0.3,0.6, 0.4,0.7]);
+let colliders = [
+    new Polygon([0.1,0.1, 0.3,0.0, 0.3,0.5, 0.0,0.5]),
+    new Polygon([0.7,0.0, 0.9,0.1, 1.0,0.5, 0.7,0.5]),
+    new Polygon([0.0,0.0, 1.0,0.0, 1.0,0.1, 0.0,0.1]),
+]
 
 function update() {
     ShaderLib.clearMRT.bind();
@@ -30,20 +36,13 @@ function update() {
     gl.uniform4f(ShaderLib.clearMRT.uniforms.u_colorB, 1, 1, 1, 1);
     blit(mainFBO);
 
-    ShaderLib.texture.bind();
-    gl.uniform1i(ShaderLib.texture.uniforms.u_tex, tex_GAH.attach(0));
-    gl.uniform4f(ShaderLib.texture.uniforms.u_color, 1, 1, 1, 1);
-    k -= MOVE_SPEED;
-    for (let i = 0 ; i < 500 ; i+=20) {
-        let color = HSVtoRGB((i%100)/100, 1, 1);
-        drawQuad(abs((i*(1+i%5)-k+500)%500)/500, abs((i*(1+i%3)+k)%500)/500, 0.1, 0.1, color.r, color.g, color.b, 1);
-    }
-    batch.flush();
     ShaderLib.obstacle.bind();
     gl.uniform4f(ShaderLib.obstacle.uniforms.u_color, 1, 1, 1, 1);
-    drawQuad(0,0,0.3,0.5,1,0,0,0.5);
-    drawQuad(0.71,0,0.3,0.5,1,0,0,0.5);
-    drawQuad(0,0,1,0.1,1,0,0,0.5);
+    k -= MOVE_SPEED;
+    for (let i = 0 ; i < 500 ; i+=3) {
+        let color = HSVtoRGB((i%100)/100, 1, 1);
+        drawQuad(abs((i*(1+i%5)-k+500)%500)/500, abs((i*(1+i%3)+k)%500)/500, 0.02, 0.02, color.r, color.g, color.b, 1);
+    }
     batch.flush();
 
     if (PHYSICS) {
@@ -91,6 +90,17 @@ function update() {
     gl.uniform1i(ShaderLib.final.uniforms.u_main, mainFBO.texture.attach(0));
     gl.uniform1i(ShaderLib.final.uniforms.u_light, lightFBO.read.texture.attach(1));
     blit(finalFBO);
+
+    if (SHOW_COLLIDERS) {
+        ShaderLib.clear.bind();
+        gl.uniform4f(ShaderLib.clear.uniforms.u_color, 0, 0, 0, 1);
+        for (let collider of colliders) {
+            collider.draw();
+            collider.drawAABB();
+        }
+        gl.uniform4f(ShaderLib.clear.uniforms.u_color, 0, 0, 0, 0.2);
+        batch.flush();
+    }
     transferTarget(activeTarget);
     requestAnimationFrame(update);
 }

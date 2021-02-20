@@ -4,6 +4,15 @@
 const floatSize = 4;
 
 Array.build = function(n, lambda) { return Array(n).fill().map((_, i) => lambda(i)); }
+Array.prototype.min = function() { return Math.min(...this); }
+Array.prototype.max = function() { return Math.max(...this); }
+Array.prototype.get = function(step) {
+	let a = step[0] === undefined ? 0 : step[0];
+	let b = step[1] === undefined ? this.length : step[1];
+	let c = step[2] === undefined ? 1 : step[2];
+	let array = this;
+	if (c < 0) array = this.copy().reverse();
+	return array.filter((_, i) => i>=a && i<b && (i+a)%c === 0); }
 Array.prototype.sum = function() { return this.reduce((a, b) => a+b, 0); }
 Array.prototype.last = function(x) { x = x || 0; return this[this.length-1-x]; }
 Array.prototype.copy = function() { return this.slice(0, this.length); }

@@ -141,10 +141,10 @@ const light_turbo_fsh = compileShader(gl.FRAGMENT_SHADER, `
 	void main() {
 		float maxD = v_color.a;
 		const float maxI = 2.0;
-		const float border = 0.0001*maxI*maxI+0.02*maxI;
+		const float border = 0.0003*maxI*maxI+0.06*maxI;
 		vec3 p = persist(v_position, v_position+2.0*maxD*(v_texcoord*vec2(-1,1)+vec2(0.5,-0.5)), maxD);
 		float d = 1.0/distance(v_texcoord, vec2(0.5));
-		float intensity = 0.0001*d*d+0.02*d -border;
+		float intensity = 0.0003*d*d+0.06*d -border;
 		outColor = vec4(v_color.rgb*intensity*p, 1);
 	}
 `);

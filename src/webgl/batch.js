@@ -52,6 +52,7 @@ class Batch {
 
 	bind() {
 		gl.bindVertexArray(this.va);
+		gl.bindBuffer(gl.ARRAY_BUFFER, this.vb);
 	}
 
 	flush(reset = true) {
