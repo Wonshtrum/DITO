@@ -1,7 +1,9 @@
 'use strict';
 
 
-let mainFBO = new FBO(512, 512, [AP("main"), AP("obstacle")]);
+let tex_GAH = loadTexture("gah.png");
+
+let mainFBO = new FBO(512, 512, [AP("main"), AP("obstacle", gl.LINEAR, gl.LINEAR_MIPMAP_NEAREST)]);
 let lightFBO = new RWFBO(512, 512, [AP("main", gl.LINEAR)]);
 let finalFBO = new FBO(512, 512, [AP("main")]);
 
@@ -13,7 +15,7 @@ let lights = Array.build(3, i => {
     light.x = rnd();
     light.y = rnd();
     light.r = light.g = light.b = 1;
-    light.size = 0.2+rnd()*0.4;
+    light.size = 0.2+rnd()*0.3;
     return light;
 });
 
@@ -28,13 +30,17 @@ function update() {
     gl.uniform4f(ShaderLib.clearMRT.uniforms.u_colorB, 1, 1, 1, 1);
     blit(mainFBO);
 
+    ShaderLib.texture.bind();
+    gl.uniform1i(ShaderLib.texture.uniforms.u_tex, tex_GAH.attach(0));
+    gl.uniform4f(ShaderLib.texture.uniforms.u_color, 1, 1, 1, 1);
+    k -= MOVE_SPEED;
+    for (let i = 0 ; i < 500 ; i+=20) {
+        let color = HSVtoRGB((i%100)/100, 1, 1);
+        drawQuad(abs((i*(1+i%5)-k+500)%500)/500, abs((i*(1+i%3)+k)%500)/500, 0.1, 0.1, color.r, color.g, color.b, 1);
+    }
+    batch.flush();
     ShaderLib.obstacle.bind();
     gl.uniform4f(ShaderLib.obstacle.uniforms.u_color, 1, 1, 1, 1);
-    k -= MOVE_SPEED;
-    for (let i = 0 ; i < 500 ; i+=2) {
-        let color = HSVtoRGB((i%100)/100, 1, 1);
-        drawQuad(abs((i*(1+i%5)-k+500)%500)/500, abs((i*(1+i%3)+k)%500)/500, 0.02, 0.02, color.r, color.g, color.b, 1);
-    }
     drawQuad(0,0,0.3,0.5,1,0,0,0.5);
     drawQuad(0.71,0,0.3,0.5,1,0,0,0.5);
     drawQuad(0,0,1,0.1,1,0,0,0.5);

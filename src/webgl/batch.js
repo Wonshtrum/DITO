@@ -67,5 +67,5 @@ class Batch {
 
 const batch = new Batch([2, 2, 4]);
 function drawQuad(x, y, w, h, r, g, b, a) {
-    batch.draw(x,y, 0,0, r,g,b,a, x+w,y, 1,0, r,g,b,a, x+w,y+h, 1,1, r,g,b,a, x,y+h, 0,1, r,g,b,a);
+    batch.draw(x,y, 0,1, r,g,b,a, x+w,y, 1,1, r,g,b,a, x+w,y+h, 1,0, r,g,b,a, x,y+h, 0,0, r,g,b,a);
 }

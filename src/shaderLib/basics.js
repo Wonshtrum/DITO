@@ -142,7 +142,7 @@ const light_turbo_fsh = compileShader(gl.FRAGMENT_SHADER, `
 		float maxD = v_color.a;
 		const float maxI = 2.0;
 		const float border = 0.0001*maxI*maxI+0.02*maxI;
-		vec3 p = persist(v_position, v_position+2.0*maxD*(vec2(0.5)-v_texcoord), maxD);
+		vec3 p = persist(v_position, v_position+2.0*maxD*(v_texcoord*vec2(-1,1)+vec2(0.5,-0.5)), maxD);
 		float d = 1.0/distance(v_texcoord, vec2(0.5));
 		float intensity = 0.0001*d*d+0.02*d -border;
 		outColor = vec4(v_color.rgb*intensity*p, 1);
@@ -198,6 +198,22 @@ const final_fsh = compileShader(gl.FRAGMENT_SHADER, `
 	}
 `);
 
+const texture_fsh = compileShader(gl.FRAGMENT_SHADER, `
+	layout(location = 0) out vec4 outColor;
+	layout(location = 1) out vec4 obsColor;
+
+	in vec2 v_texcoord;
+	in vec4 v_color;
+	uniform sampler2D u_tex;
+	uniform vec4 u_color;
+
+	void main() {
+		vec4 tex = texture(u_tex, v_texcoord);
+		outColor = (0.5+v_color)*tex;
+		obsColor = vec4(v_color.rgb*u_color.rgb, u_color.a*tex.a);
+	}
+`);
+
 const ShaderLib = {};
 
 ShaderLib.debug      = new Shader(general_vsh, debug_fsh);
@@ -209,3 +225,4 @@ ShaderLib.lightTurbo = new Shader(general_vsh, light_turbo_fsh);
 ShaderLib.blurV      = new Shader(basic_vsh, blurV_fsh);
 ShaderLib.blurH      = new Shader(basic_vsh, blurH_fsh);
 ShaderLib.final      = new Shader(basic_vsh, final_fsh);
+ShaderLib.texture    = new Shader(general_vsh, texture_fsh);

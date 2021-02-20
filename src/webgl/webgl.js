@@ -2,17 +2,17 @@
 
 
 class Texture {
-	constructor(width, height, parameters, id = 0) {
+	constructor(width, height, parameters, id = 0, pixels = null) {
 		this.width = width;
 		this.height = height;
 		this.data = gl.createTexture();
 		gl.activeTexture(gl.TEXTURE0 + id);
 		gl.bindTexture(gl.TEXTURE_2D, this.data);
-		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_NEAREST);
-		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, parameters.filter);
+		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, parameters.minFilter);
+		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, parameters.maxFilter);
 		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
 		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-		gl.texImage2D(gl.TEXTURE_2D, 0, parameters.internalFormat, width, height, 0, parameters.format, parameters.type, null);
+		gl.texImage2D(gl.TEXTURE_2D, 0, parameters.internalFormat, width, height, 0, parameters.format, parameters.type, pixels);
 		gl.generateMipmap(gl.TEXTURE_2D);
 	}
 
@@ -21,6 +21,20 @@ class Texture {
 		gl.bindTexture(gl.TEXTURE_2D, this.data);
 		return id;
 	}
+}
+
+function loadTexture(url, parameters = new AP()) {
+	let img = new Image();
+	let texture = new Texture(0, 0, parameters);
+	img.onload = function() {
+		console.log(url, "loaded");
+		texture.width = img.width;
+		texture.height = img.height;
+		texture.attach(0);
+		gl.texImage2D(gl.TEXTURE_2D, 0, parameters.internalFormat, img.width, img.height, 0, parameters.format, parameters.type, img);
+	};
+	img.src = "img/"+url;
+	return texture;
 }
 
 class FBO {
@@ -101,16 +115,17 @@ class RWFBO {
 };
 
 class AttachmentParameters {
-	constructor(name, filter, internalFormat, format, type) {
+	constructor(name, maxFilter, minFilter, internalFormat, format, type) {
 		this.name = name;
-		this.filter = filter;
+		this.maxFilter = maxFilter;
+		this.minFilter = minFilter;
 		this.internalFormat = internalFormat;
 		this.format = format;
 		this.type = type;
 	}
 };
-function AP(name = "main", filter = gl.NEAREST, internalFormat = gl.RGBA8, format = gl.RGBA, type = gl.UNSIGNED_BYTE) {
-	return new AttachmentParameters(name, filter, internalFormat, format, type);
+function AP(name = "main", maxFilter = gl.NEAREST, minFilter = gl.NEAREST, internalFormat = gl.RGBA8, format = gl.RGBA, type = gl.UNSIGNED_BYTE) {
+	return new AttachmentParameters(name, maxFilter, minFilter, internalFormat, format, type);
 }
 
 function unbindAllFBO() {
