@@ -26,6 +26,8 @@ Array.prototype.remove = function(e) {
 }
 const getOrElse = (value, orElse) => value === undefined ? orElse : value;
 const rnd = Math.random;
+const min = Math.min;
+const max = Math.max;
 const abs = Math.abs;
 const floor = Math.floor;
 const sqrt = Math.sqrt;

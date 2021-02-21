@@ -149,6 +149,15 @@ const light_turbo_fsh = compileShader(gl.FRAGMENT_SHADER, `
 	}
 `);
 
+const gaussian_kernel = `
+#define N 5
+
+#if N == 2
+	const float weight[2] = float[](0.5, 0.25);
+#else
+	const float weight[5] = float[](0.227027, 0.1945946, 0.1216216, 0.054054, 0.016216);
+#endif
+`;
 const blurH_fsh = compileShader(gl.FRAGMENT_SHADER, `
 	layout(location = 0) out vec4 outColor;
 
@@ -157,15 +166,14 @@ const blurH_fsh = compileShader(gl.FRAGMENT_SHADER, `
 
 	void main() {
 		float pixelWidth = 1.0/float(textureSize(u_tex, 0).x);
-		const float weight[5] = float[](0.227027, 0.1945946, 0.1216216, 0.054054, 0.016216);
 		vec3 result = texture(u_tex, v_position).rgb * weight[0];
-		for(int i = 1 ; i < 5 ; i++) {
+		for(int i = 1 ; i < N ; i++) {
             result += texture(u_tex, v_position + vec2(pixelWidth * float(i), 0)).rgb * weight[i];
             result += texture(u_tex, v_position - vec2(pixelWidth * float(i), 0)).rgb * weight[i];
 		}
 		outColor = vec4(result, 1);
 	}
-`);
+`, gaussian_kernel);
 const blurV_fsh = compileShader(gl.FRAGMENT_SHADER, `
 	layout(location = 0) out vec4 outColor;
 
@@ -174,15 +182,14 @@ const blurV_fsh = compileShader(gl.FRAGMENT_SHADER, `
 
 	void main() {
 		float pixelHeight = 1.0/float(textureSize(u_tex, 0).y);
-		const float weight[5] = float[](0.227027, 0.1945946, 0.1216216, 0.054054, 0.016216);
 		vec3 result = texture(u_tex, v_position).rgb * weight[0];
-		for(int i = 1 ; i < 5 ; i++) {
+		for(int i = 1 ; i < N ; i++) {
             result += texture(u_tex, v_position + vec2(0, pixelHeight * float(i))).rgb * weight[i];
             result += texture(u_tex, v_position - vec2(0, pixelHeight * float(i))).rgb * weight[i];
 		}
 		outColor = vec4(result, 1);
 	}
-`);
+`, gaussian_kernel);
 
 const final_fsh = compileShader(gl.FRAGMENT_SHADER, `
 	layout(location = 0) out vec4 outColor;

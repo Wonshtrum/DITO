@@ -1,9 +1,9 @@
 'use strict';
 
 
-let mainFBO = new FBO(512, 512, [AP("main"), AP("obstacle", gl.LINEAR, gl.LINEAR_MIPMAP_NEAREST)]);
-let lightFBO = new RWFBO(512, 512, [AP("main", gl.LINEAR)]);
-let finalFBO = new FBO(512, 512, [AP("main")]);
+let mainFBO = new FBO(resolution, resolution, [AP("main"), AP("obstacle", gl.LINEAR, gl.LINEAR_MIPMAP_NEAREST)]);
+let lightFBO = new RWFBO(resolution, resolution, [AP("main", gl.LINEAR)]);
+let finalFBO = new FBO(resolution, resolution, [AP("main")]);
 
 let k = 0;
 let activeTarget = finalFBO.texture;
@@ -23,13 +23,6 @@ let MOVE_SPEED = 0.5;
 let PHYSICS = true;
 let SHOW_COLLIDERS = true;
 
-//let polygon = new Polygon([0.5,0.5, 0.7,0.8, 0.8,0.2, 0.2,0.3, 0.3,0.6, 0.4,0.7]);
-let colliders = [
-    new Polygon([0.1,0.1, 0.3,0.0, 0.3,0.5, 0.0,0.5]),
-    new Polygon([0.7,0.0, 0.9,0.1, 1.0,0.5, 0.7,0.5]),
-    new Polygon([0.0,0.0, 1.0,0.0, 1.0,0.1, 0.0,0.1]),
-]
-
 function update() {
     ShaderLib.clearMRT.bind();
     gl.uniform4f(ShaderLib.clearMRT.uniforms.u_colorF, 1, 1, 1, 1);
@@ -43,10 +36,14 @@ function update() {
         let color = HSVtoRGB((i%100)/100, 1, 1);
         drawQuad(abs((i*(1+i%5)-k+500)%500)/500, abs((i*(1+i%3)+k)%500)/500, 0.02, 0.02, color.r, color.g, color.b, 1);
     }
+    for (let entity of world.entities) {
+        entity.draw();
+    }
     batch.flush();
 
     if (PHYSICS) {
         rope.simulate(0.002, Cursor.x, Cursor.y);
+        world.tick();
     }
     gl.uniform4f(ShaderLib.obstacle.uniforms.u_color, 1, 1, 1, 1);
     rope.draw();
@@ -94,9 +91,9 @@ function update() {
     if (SHOW_COLLIDERS) {
         ShaderLib.clear.bind();
         gl.uniform4f(ShaderLib.clear.uniforms.u_color, 0, 0, 0, 1);
-        for (let collider of colliders) {
+        for (let collider of world.colliders) {
             collider.draw();
-            collider.drawAABB();
+            collider.drawAABB(0,0,0,0.5);
         }
         gl.uniform4f(ShaderLib.clear.uniforms.u_color, 0, 0, 0, 0.2);
         batch.flush();

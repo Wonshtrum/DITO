@@ -17,5 +17,6 @@ function additiveBlend(active) {
 
 const canvas = document.getElementById("context");
 const gl = initWebGL(canvas);
-canvas.width = 512;
-canvas.height = 512;
+let resolution = 512;
+canvas.width = resolution;
+canvas.height = resolution;

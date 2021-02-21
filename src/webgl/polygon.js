@@ -1,7 +1,10 @@
 class Polygon {
     constructor(vertices, center) {
         this.vertices = vertices;
-        this.envelopp = [vertices.get([,,2]).min(), vertices.get([1,,2]).min(), vertices.get([,,2]).max(), vertices.get([1,,2]).max()];
+        this.x0 = vertices.get([,,2]).min();
+        this.y0 = vertices.get([1,,2]).min();
+        this.x1 = vertices.get([,,2]).max();
+        this.y1 = vertices.get([1,,2]).max();
 
 		//VERTEX ARRAY
 		this.va = gl.createVertexArray();
@@ -41,7 +44,7 @@ class Polygon {
         gl.drawElements(gl.LINE_LOOP, this.n, gl.UNSIGNED_SHORT, 0);
     }
 
-    drawAABB() {
-        drawQuad(this.envelopp[0], this.envelopp[1], this.envelopp[2]-this.envelopp[0], this.envelopp[3]-this.envelopp[1], 0, 1, 0, 0.5);
+    drawAABB(r,g,b,a) {
+        drawQuad(this.x0, this.y0, this.x1-this.x0, this.y1-this.y0, r,g,b,a);
     }
 };

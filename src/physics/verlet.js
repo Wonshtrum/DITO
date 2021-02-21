@@ -21,8 +21,8 @@ class VerletPoint {
         this.posOldX = this.posX;
         this.posOldY = this.posY;
         if (this.touch) {
-            this.posX += vx*0.1 + forceX;
-            this.posY += vy*0.1 + forceY;
+            this.posX += vx*0.5 + forceX;
+            this.posY += vy*0.5 + forceY;
             this.touch = false;
         } else {
             this.posX += vx*this.coef + forceX;
