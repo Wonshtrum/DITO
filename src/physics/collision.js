@@ -55,6 +55,8 @@ function solveHalfSAT(a, b) {
     let overlap = Infinity;
     let dx = 0;
     let dy = 0;
+    let current_overlap;
+    let direction;
     for (let i = 0 ; i < a.vertices.length ; i+=2) {
         let j = (i+2)%a.vertices.length;
         let ax = a.vertices[i+1] - a.vertices[j+1];
@@ -74,10 +76,17 @@ function solveHalfSAT(a, b) {
             min_b = min(min_b, proj);
             max_b = max(max_b, proj);
         }
-        let current_overlap = (min(max_a, max_b) - max(min_a, min_b))/d;
+
+        if (max_a-min_b > max_b-min_a) {
+            current_overlap = (max_b-min_a)/d;
+            direction = 1;
+        } else {
+            current_overlap = (max_a-min_b)/d;
+            direction = -1;
+        }
         if (current_overlap < overlap) {
-            dx = ax;
-            dy = ay;
+            dx = direction*ax/d;
+            dy = direction*ay/d;
             overlap = current_overlap;
         }
     }
@@ -87,14 +96,10 @@ function solveSAT(e, c) {
     let [oe, dxe, dye] = solveHalfSAT(e, c);
     let [oc, dxc, dyc] = solveHalfSAT(c, e);
     if (oe < oc) {
-        //console.log(oe, dxe, dye)
-        let d = sqrt(dxe*dxe + dye*dye);
-        e.x += oe*dxe/d;
-        e.y += oe*dye/d;
+        e.x += oe*dxe;
+        e.y += oe*dye;
     } else {
-        //console.log(oc, dxc, dyc)
-        let d = sqrt(dxc*dxc + dyc*dyc);
-        e.x -= oc*dxc/d;
-        e.y -= oc*dyc/d;
+        e.x -= oc*dxc;
+        e.y -= oc*dyc;
     }
 }

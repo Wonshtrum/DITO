@@ -7,8 +7,8 @@ class World {
 
     tick(dt) {
         for (let entity of this.entities) {
-            entity.y -= 0.005;
-            //entity.x += 0.005;
+            entity.y -= 0.004;
+            entity.x += 0.003;
             entity.update(dt);
             for (let collider of this.colliders) {
                 if (collisionAABB(entity, collider) && collisionSAT(entity, collider)) {
