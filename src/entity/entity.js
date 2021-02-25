@@ -1,9 +1,15 @@
-class Player {
+class Entity {
     constructor(x, y, w, h, r, g, b, a) {
+        this.vx = 0;
+        this.vy = 0;
+
+        this.ox = x;
+        this.oy = y;
         this.x = x;
         this.y = y;
         this.w = w;
         this.h = h;
+
         this.r = r;
         this.g = g;
         this.b = b;
@@ -12,6 +18,12 @@ class Player {
     }
 
     update(dt) {
+        let vx = this.x - this.ox;
+        let vy = this.y - this.oy;
+        this.x += vx*dt;
+        this.y += vy*dt;
+        this.ox = this.x - vx;
+        this.oy = this.y - vy;
         this.updateCollider();
     }
 

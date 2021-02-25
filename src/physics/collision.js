@@ -77,7 +77,7 @@ function solveHalfSAT(a, b) {
             max_b = max(max_b, proj);
         }
 
-        if (max_a-min_b > max_b-min_a) {
+        if (max_b-min_a < max_a-min_b) {
             current_overlap = (max_b-min_a)/d;
             direction = 1;
         } else {
@@ -102,4 +102,123 @@ function solveSAT(e, c) {
         e.x -= oc*dxc;
         e.y -= oc*dyc;
     }
+}
+
+
+function solvePointSAT(collider, point) {
+    if (collider.x0 >= point.posX || collider.x1 <= point.posX || collider.y0 >= point.posY || collider.y1 <= point.posY) {
+        return false;
+    }
+    let overlap = Infinity;
+    let dx = 0;
+    let dy = 0;
+    let current_overlap;
+    let direction;
+    for (let i = 0 ; i < collider.vertices.length ; i+=2) {
+        let j = (i+2)%collider.vertices.length;
+        let ax = collider.vertices[i+1] - collider.vertices[j+1];
+        let ay = collider.vertices[j] - collider.vertices[i];
+        let d = sqrt(ax*ax + ay*ay);
+        let projPoint = ay*point.posY + ax*point.posX;
+        let min_c = Infinity;
+        let max_c = -Infinity;
+        for (let k = 0 ; k < collider.vertices.length ; k+=2) {
+            let proj = ay*collider.vertices[k+1] + ax*collider.vertices[k];
+            min_c = min(min_c, proj);
+            max_c = max(max_c, proj);
+        }
+        if (max_c <= projPoint || min_c >= projPoint) {
+            return false;
+        } else if (max_c-projPoint < projPoint-min_c) {
+            current_overlap = (max_c-projPoint)/d;
+            direction = 1;
+        } else {
+            current_overlap = (projPoint-min_c)/d;
+            direction = -1;
+        }
+        if (current_overlap < overlap) {
+            dx = direction*ax/d;
+            dy = direction*ay/d;
+            overlap = current_overlap;
+        }
+    }
+    point.posX += overlap*dx;
+    point.posY += overlap*dy;
+    return true;
+}
+
+
+function solveSegmentSAT(collider, pointA, pointB) {
+    let dx = 0;
+    let dy = 0;
+    let current_overlap;
+    let direction;
+    let overlap = Infinity;
+    // SEGMENT
+    {
+        let ax = pointA.posY - pointB.posY;
+        let ay = pointB.posX - pointA.posX;
+        let d = sqrt(ax*ax + ay*ay);
+        let min_c = Infinity;
+        let max_c = -Infinity;
+        for (let k = 0 ; k < collider.vertices.length ; k+=2) {
+            let proj = ay*collider.vertices[k+1] + ax*collider.vertices[k];
+            min_c = min(min_c, proj);
+            max_c = max(max_c, proj);
+        }
+        let projA = ay*pointA.posY + ax*pointA.posX;
+        let projB = ay*pointB.posY + ax*pointB.posX;
+        let min_s = min(projA, projB);
+        let max_s = max(projA, projB);
+
+        if (max_c <= min_s || min_c >= max_s) {
+            return false;
+        } else if (max_s-min_c < max_c-min_s) {
+            current_overlap = (max_s-min_c)/d;
+            direction = -1;
+        } else {
+            current_overlap = (max_c-min_s)/d;
+            direction = 1;
+        }
+        dx = direction*ax/d;
+        dy = direction*ay/d;
+    }
+    // COLLIDER
+    for (let i = 0 ; i < collider.vertices.length ; i+=2) {
+        let j = (i+2)%collider.vertices.length;
+        let ax = collider.vertices[i+1] - collider.vertices[j+1];
+        let ay = collider.vertices[j] - collider.vertices[i];
+        let d = sqrt(ax*ax + ay*ay);
+        let min_c = Infinity;
+        let max_c = -Infinity;
+        for (let k = 0 ; k < collider.vertices.length ; k+=2) {
+            let proj = ay*collider.vertices[k+1] + ax*collider.vertices[k];
+            min_c = min(min_c, proj);
+            max_c = max(max_c, proj);
+        }
+        let projA = ay*pointA.posY + ax*pointA.posX;
+        let projB = ay*pointB.posY + ax*pointB.posX;
+        let min_s = min(projA, projB);
+        let max_s = max(projA, projB);
+
+        if (max_c <= min_s || min_c >= max_s) {
+            return false;
+        } else if (max_s-min_c < max_c-min_s) {
+            current_overlap = (max_s-min_c)/d;
+            direction = 1;
+        } else {
+            current_overlap = (max_c-min_s)/d;
+            direction = -1;
+        }
+        if (current_overlap < overlap) {
+            dx = direction*ax/d;
+            dy = direction*ay/d;
+            overlap = current_overlap;
+        }
+    }
+    pointA.posX -= overlap*dx;
+    pointA.posY -= overlap*dy;
+    pointB.posX -= overlap*dx;
+    pointB.posY -= overlap*dy;
+    return true;
 }

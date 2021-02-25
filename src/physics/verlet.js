@@ -39,37 +39,19 @@ class Rope {
         this.iter = iter;
     }
 
-    simulate(dt, anchorX, anchorY) {
+    simulate(dt, anchorX, anchorY, colliders, solveCollision) {
         for (let i = 0 ; i < this.n ; i++) {
             this.segments[i].integrate(0, -dt);
         }
         for (let i = 0 ; i < this.iter ; i++) {
-            this.constraint(anchorX, anchorY, i%5 === 0 || i === this.iter-1);
+            this.constraint(anchorX, anchorY, i%5 === 0 || i > this.iter-5, colliders, solveCollision);
         }
     }
 
-    constraint(anchorX, anchorY, collision) {
+    constraint(anchorX, anchorY, collision, colliders, solveCollision) {
         this.segments[0].posX = anchorX;
         this.segments[0].posY = anchorY;
         for (let i = 0 ; i < this.n-1 ; i++) {
-            if (collision) {
-                let clipY = this.segments[i+1].posY-0.5;
-                let clipX = 0.2-abs(this.segments[i+1].posX-0.5);
-                let touch = false;
-                if (clipX < 0 && clipY < 0) {
-                    if (clipX < clipY) {
-                        this.segments[i+1].posY = 0.5;
-                    } else {
-                        this.segments[i+1].posX = this.segments[i+1].posX > 0.5 ? 0.7 : 0.3;
-                    }
-                    touch = true;
-                }
-                if (this.segments[i+1].posY<0.1) {
-                    this.segments[i+1].posY = 0.1;
-                    touch = true;
-                }
-                this.segments[i+1].touch |= touch;
-            }
             let dx = this.segments[i].posX - this.segments[i+1].posX;
             let dy = this.segments[i].posY - this.segments[i+1].posY;
             let d = sqrt(dx*dx + dy*dy);
@@ -78,12 +60,19 @@ class Rope {
             this.segments[i].posY -= e*dy;
             this.segments[i+1].posX += e*dx;
             this.segments[i+1].posY += e*dy;
+            if (collision) {
+                for (let collider of colliders) {
+                    solveCollision(collider, this.segments[i+1], this.segments[i]);
+                }
+            }
         }
     }
 
     draw() {
         for (let i = 0 ; i < this.n ; i++) {
-            drawQuad(this.segments[i].posX, this.segments[i].posY, 0.01, 0.01, 1,0,0,1);
+            drawQuad(this.segments[i].posX-0.005, this.segments[i].posY-0.005, 0.01, 0.01, 1,0,0,1);
+            if (i < this.n-1)
+                drawQuad((this.segments[i].posX+this.segments[i+1].posX)/2-0.003, (this.segments[i].posY+this.segments[i+1].posY)/2-0.003, 0.006, 0.006, 1,0,1,1);
         }
     }
 }

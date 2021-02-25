@@ -7,7 +7,6 @@ let finalFBO = new FBO(resolution, resolution, [AP("main")]);
 
 let k = 0;
 let activeTarget = finalFBO.texture;
-let rope = new Rope(0.2, 2.5, 75, 0.02, 0.95, 100);
 let lights = Array.build(3, i => {
     let light = generateColor();
     light.x = rnd();
@@ -22,6 +21,7 @@ let BLUR_LIGHT = 1;
 let MOVE_SPEED = 0.5;
 let PHYSICS = true;
 let SHOW_COLLIDERS = true;
+let SOLVE_ROPE_COLLISION = solvePointSAT;
 
 function update() {
     ShaderLib.clearMRT.bind();
@@ -42,11 +42,12 @@ function update() {
     batch.flush();
 
     if (PHYSICS) {
-        rope.simulate(0.002, Cursor.x, Cursor.y);
-        world.tick();
+        world.tick(0.002);
     }
     gl.uniform4f(ShaderLib.obstacle.uniforms.u_color, 1, 1, 1, 1);
-    rope.draw();
+    for (let rope of world.ropes) {
+        rope.draw();
+    }
     batch.flush();
     mainFBO.textures.obstacle.attach(0);
     gl.generateMipmap(gl.TEXTURE_2D);
